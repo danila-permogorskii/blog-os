@@ -14,7 +14,6 @@ features = ["spin_no_std"]
 
 # the profile used for 'cargo build'
 [profile.dev]
-panic = "abort" # disable stack unwinding on panic
 
 # the profile used for 'cargo build --release'
 [profile.release]
@@ -22,5 +21,5 @@ panic = "abort" # disable stack unwinding on panic
 
 [[bin]]
 name = "blog_os"
-test = false
+test = true
 bench = false
