@@ -26,8 +26,18 @@ fn panic(info: &PanicInfo) -> ! {
 pub extern "C" fn _start() -> ! {
     println!("Hello World{}", "!");
 
+    blog_os::init(); // new
+
+    fn stack_overflow() {
+        stack_overflow(); // for each recursion, the return address is pushed
+    }
+
+    stack_overflow();
+
     #[cfg(test)]
     test_main();
+
+    println!("It did not crash!");
 
     loop {}
 }
