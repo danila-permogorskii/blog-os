@@ -13,7 +13,7 @@ use blog_os::println;
 #[panic_handler]
 fn panic(_info: &PanicInfo) -> ! {
     println!("{}", _info);
-    loop{}
+    blog_os::hlt_loop();
 }
 
 #[cfg(test)]
@@ -28,16 +28,16 @@ pub extern "C" fn _start() -> ! {
 
     blog_os::init(); // new
 
-    fn stack_overflow() {
-        stack_overflow(); // for each recursion, the return address is pushed
-    }
-
-    stack_overflow();
+    // Test double fault
+    // fn stack_overflow() {
+    //     stack_overflow(); // for each recursion, the return address is pushed
+    // }
+    //
+    // stack_overflow();
 
     #[cfg(test)]
     test_main();
 
     println!("It did not crash!");
-
-    loop {}
+    blog_os::hlt_loop();
 }
