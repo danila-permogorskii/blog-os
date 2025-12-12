@@ -5,6 +5,11 @@
 #![reexport_test_harness_main = "test_main"]
 
 use core::panic::PanicInfo;
+use bootloader::{entry_point, BootInfo};
+use x86_64::registers::control::Cr3;
+use x86_64::structures::paging::PageTable;
+use x86_64::VirtAddr;
+use blog_os::memory::translate_addr;
 use blog_os::println;
 
 
@@ -22,18 +27,33 @@ fn panic(info: &PanicInfo) -> ! {
     blog_os::test_panic_handler(info);
 }
 
-#[unsafe(no_mangle)] // don't mangle the name of this function
-pub extern "C" fn _start() -> ! {
+entry_point!(kernel_main);
+
+fn kernel_main(boot_info: &'static BootInfo) -> ! {
+    use blog_os::memory::translate_addr;
+
     println!("Hello World{}", "!");
+    blog_os::init();
 
-    blog_os::init(); // new
+    let phys_mem_offset = VirtAddr::new(boot_info.physical_memory_offset);
 
-    // Test double fault
-    // fn stack_overflow() {
-    //     stack_overflow(); // for each recursion, the return address is pushed
-    // }
-    //
-    // stack_overflow();
+    let addresses = [
+        // the identity-mapped vga buffer page
+        0xb8000,
+        // some code page
+        0x201008,
+        // some stack page
+        0x0100_0020_1a10,
+        // virtual address mapped to physical address 0
+        boot_info.physical_memory_offset
+    ];
+
+    for &address in &addresses {
+        let virt = VirtAddr::new(address);
+        let phys = unsafe { translate_addr(virt, phys_mem_offset)};
+        println!("{:?} -> {:?}", virt, phys);
+
+    }
 
     #[cfg(test)]
     test_main();
