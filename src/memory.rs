@@ -1,5 +1,4 @@
 use bootloader::bootinfo::{MemoryMap, MemoryRegionType};
-use x86_64::registers::control::Cr3;
 use x86_64::structures::paging::{FrameAllocator, Mapper, OffsetPageTable, Page, PhysFrame, Size4KiB};
 use x86_64::{structures::paging::PageTable, PhysAddr, VirtAddr};
 
@@ -40,7 +39,7 @@ pub fn create_example_mapping(
     frame_allocator: &mut impl FrameAllocator<Size4KiB>,
 ) {
     use x86_64::structures::paging::PageTableFlags as Flags;
-    
+
     let frame = PhysFrame::containing_address(PhysAddr::new(0xb8000));
     let flags = Flags::PRESENT | Flags::WRITABLE;
 
@@ -48,7 +47,7 @@ pub fn create_example_mapping(
         // FIXME: this is not safe, we do it only for testing
         mapper.map_to(page, frame, flags, frame_allocator)
     };
-    
+
     map_to_result.expect("map_to failed").flush();
 }
 
@@ -69,7 +68,7 @@ pub struct BootInfoFrameAllocator {
 
 impl BootInfoFrameAllocator {
     /// Create a FrameAllocator from the passed memory map.
-    /// 
+    ///
     /// This function is unsafe because the caller must guarantee that the passed
     /// memory map is valid. The main requirement is that all frames that are marked
     /// as `USABLE` in it are really unused.
@@ -79,7 +78,7 @@ impl BootInfoFrameAllocator {
             next: 0
         }
     }
-    
+
     /// Returns an iterator over the usable frames specified in the memory map.
     fn usable_frames(&self) -> impl Iterator<Item = PhysFrame> {
         // get usable regions from memory map

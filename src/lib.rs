@@ -7,13 +7,16 @@
 #![reexport_test_harness_main = "test_main"]
 
 use core::panic::PanicInfo;
-use x86_64::instructions::port::Port;
 
 pub mod serial;
 pub mod vga_buffer;
 pub mod interrupts;
 pub mod gdt;
 pub mod memory;
+
+pub mod allocator;
+
+extern crate alloc;
 
 pub trait Testable {
     fn run(&self) -> ();
