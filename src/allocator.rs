@@ -8,10 +8,12 @@ use x86_64::{
     VirtAddr
 };
 use crate::allocator::bump::{BumpAllocator};
+use crate::allocator::fixed_size_block::FixedSizeBlockAllocator;
 use crate::allocator::linked_list::LinkedListAllocator;
 
 pub mod bump;
 pub mod linked_list;
+pub mod fixed_size_block;
 
 pub const HEAP_START: usize = 0x_4444_4444_0000;
 pub const HEAP_SIZE: usize = 100 * 1024; // 100 KiB
@@ -19,7 +21,7 @@ pub const HEAP_SIZE: usize = 100 * 1024; // 100 KiB
 pub struct Dummy;
 
 #[global_allocator]
-static ALLOCATOR: Locked<LinkedListAllocator> = Locked::new(LinkedListAllocator::new());
+static ALLOCATOR: Locked<FixedSizeBlockAllocator> = Locked::new(FixedSizeBlockAllocator::new());
 
 unsafe impl GlobalAlloc for Dummy {
     unsafe fn alloc(&self, layout: Layout) -> *mut u8 {
@@ -72,7 +74,7 @@ impl<A> Locked<A> {
             inner: spin::Mutex::new(inner)
         }
     }
-    
+
     pub fn lock(&self) -> spin::MutexGuard<A> {
         self.inner.lock()
     }
