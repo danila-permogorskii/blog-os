@@ -1,5 +1,6 @@
-use core::alloc::{GlobalAlloc, Layout};
+use alloc::alloc::{GlobalAlloc, Layout};
 use core::ptr;
+use super::{alter_align_up, Locked};
 
 pub struct BumpAllocator {
     heap_start: usize,
@@ -57,39 +58,5 @@ unsafe impl GlobalAlloc for Locked<BumpAllocator> {
         if bump.allocations == 0 {
             bump.next = bump.heap_start;
         }
-    }
-}
-
-/// Align the given address `addr` upwards to alignment `align`.
-fn align_up(addr: usize, align: usize) -> usize {
-    let remainder = addr % align;
-    if remainder == 0 {
-        addr // addr already aligned
-    } else {
-        addr - remainder + align
-    }
-}
-
-/// Align the give address `addr` upwards to alignment `align`.
-///
-/// Requires that `align` is a power of two
-fn alter_align_up(addr: usize, align: usize) -> usize {
-    (addr + align - 1) & !(align - 1)
-}
-
-/// A wrapper around spin::Mutex to permit trait implementations
-pub struct Locked<A> {
-    inner: spin::Mutex<A>
-}
-
-impl<A> Locked<A> {
-    pub const fn new(inner: A) -> Self {
-        Locked {
-            inner: spin::Mutex::new(inner)
-        }
-    }
-
-    pub fn lock(&self) -> spin::MutexGuard<A> {
-        self.inner.lock()
     }
 }

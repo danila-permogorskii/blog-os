@@ -7,9 +7,11 @@ use x86_64::{
     },
     VirtAddr
 };
-use crate::allocator::bump::{BumpAllocator, Locked};
+use crate::allocator::bump::{BumpAllocator};
+use crate::allocator::linked_list::LinkedListAllocator;
 
 pub mod bump;
+pub mod linked_list;
 
 pub const HEAP_START: usize = 0x_4444_4444_0000;
 pub const HEAP_SIZE: usize = 100 * 1024; // 100 KiB
@@ -17,7 +19,7 @@ pub const HEAP_SIZE: usize = 100 * 1024; // 100 KiB
 pub struct Dummy;
 
 #[global_allocator]
-static ALLOCATOR: Locked<BumpAllocator> = Locked::new(BumpAllocator::new());
+static ALLOCATOR: Locked<LinkedListAllocator> = Locked::new(LinkedListAllocator::new());
 
 unsafe impl GlobalAlloc for Dummy {
     unsafe fn alloc(&self, layout: Layout) -> *mut u8 {
@@ -57,4 +59,39 @@ pub fn init_heap(
     }
 
     Ok(())
+}
+
+/// A wrapper around spin::Mutex to permit trait implementations.
+pub struct Locked<A> {
+    inner: spin::Mutex<A>
+}
+
+impl<A> Locked<A> {
+    pub const fn new(inner: A) -> Self {
+        Locked {
+            inner: spin::Mutex::new(inner)
+        }
+    }
+    
+    pub fn lock(&self) -> spin::MutexGuard<A> {
+        self.inner.lock()
+    }
+}
+
+
+/// Align the given address `addr` upwards to alignment `align`.
+fn align_up(addr: usize, align: usize) -> usize {
+    let remainder = addr % align;
+    if remainder == 0 {
+        addr // addr already aligned
+    } else {
+        addr - remainder + align
+    }
+}
+
+/// Align the give address `addr` upwards to alignment `align`.
+///
+/// Requires that `align` is a power of two
+fn alter_align_up(addr: usize, align: usize) -> usize {
+    (addr + align - 1) & !(align - 1)
 }
