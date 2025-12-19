@@ -1,5 +1,4 @@
 #![no_std]
-
 #![cfg_attr(test, no_main)]
 #![feature(custom_test_frameworks)]
 #![feature(abi_x86_interrupt)]
@@ -8,11 +7,12 @@
 
 use core::panic::PanicInfo;
 
-pub mod serial;
-pub mod vga_buffer;
-pub mod interrupts;
 pub mod gdt;
+pub mod interrupts;
 pub mod memory;
+pub mod serial;
+pub mod task;
+pub mod vga_buffer;
 
 pub mod allocator;
 
@@ -33,7 +33,7 @@ where
     }
 }
 
-pub fn test_runner(tests: &[&dyn Testable]){
+pub fn test_runner(tests: &[&dyn Testable]) {
     serial_println!("Running {} tests", tests.len());
     for test in tests {
         test.run();
@@ -49,7 +49,7 @@ pub fn test_panic_handler(info: &PanicInfo) -> ! {
 }
 
 #[cfg(test)]
-use bootloader::{entry_point, BootInfo};
+use bootloader::{BootInfo, entry_point};
 
 #[cfg(test)]
 entry_point!(test_kernel_main);
@@ -72,7 +72,7 @@ fn panic(info: &PanicInfo) -> ! {
 #[repr(u32)]
 pub enum QemuExitCode {
     Success = 0x10,
-    Failed = 0x11
+    Failed = 0x11,
 }
 
 pub fn exit_qemu(exit_code: QemuExitCode) {
