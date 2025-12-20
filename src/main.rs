@@ -12,6 +12,8 @@ use alloc::vec::Vec;
 use blog_os::{allocator, memory, println};
 use bootloader::{BootInfo, entry_point};
 use core::panic::PanicInfo;
+use blog_os::task::executor::Executor;
+use blog_os::task::keyboard;
 
 /// This function is called on panic
 #[cfg(not(test))]
@@ -67,7 +69,7 @@ fn kernel_main(boot_info: &'static BootInfo) -> ! {
 
     use blog_os::task::{Task, simple_executor::SimpleExecutor};
 
-    let mut executor = SimpleExecutor::new();
+    let mut executor = Executor::new();
     executor.spawn(Task::new(example_task()));
     executor.spawn(Task::new(keyboard::print_keypresses()));
     executor.run();
